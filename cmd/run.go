@@ -76,6 +76,7 @@ var (
 	runFilePath          string
 	appChannelAddress    string
 	enableRunK8s         bool
+	detach               bool
 )
 
 const (
@@ -141,6 +142,17 @@ dapr run --run-file /path/to/directory -k
 		viper.BindPFlag("placement-host-address", cmd.Flags().Lookup("placement-host-address"))
 	},
 	Run: func(cmd *cobra.Command, args []string) {
+		if detach && os.Getenv(detachedRunEnv) == "" {
+			if runFilePath != "" || enableRunK8s {
+				print.FailureStatusEvent(os.Stderr, "--detach is supported only for a single self-hosted application run, not --run-file or --kubernetes")
+				os.Exit(1)
+			}
+			if err := startDetachedRun(os.Args[1:]); err != nil {
+				print.FailureStatusEvent(os.Stderr, "Failed to start detached Dapr run: %v", err)
+				os.Exit(1)
+			}
+			return
+		}
 		if len(runFilePath) > 0 {
 			// Check for incompatible flags
 			incompatibleFlags := detectIncompatibleFlags(cmd)
@@ -506,6 +518,7 @@ func init() {
 	RunCmd.Flags().BoolVarP(&enableRunK8s, "kubernetes", "k", false, "Run the multi-app run template against Kubernetes environment.")
 	RunCmd.Flags().StringVar(&apiListenAddresses, "dapr-listen-addresses", "", "Comma separated list of IP addresses that sidecar will listen to")
 	RunCmd.Flags().StringVarP(&runFilePath, "run-file", "f", "", "Path to the run template file for the list of apps to run")
+	RunCmd.Flags().BoolVarP(&detach, "detach", "d", false, "Run Dapr and the application in the background")
 	RunCmd.Flags().StringVarP(&appChannelAddress, "app-channel-address", "", utils.DefaultAppChannelAddress, "The network address the application listens on")
 	RootCmd.AddCommand(RunCmd)
 }
