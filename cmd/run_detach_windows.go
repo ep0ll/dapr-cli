@@ -17,12 +17,13 @@ package cmd
 
 import (
 	"os/exec"
+	"syscall"
 
 	"golang.org/x/sys/windows"
 )
 
 func configureDetachedProcess(cmd *exec.Cmd) error {
-	cmd.SysProcAttr = &windows.SysProcAttr{
+	cmd.SysProcAttr = &syscall.SysProcAttr{
 		CreationFlags: windows.DETACHED_PROCESS | windows.CREATE_NEW_PROCESS_GROUP,
 	}
 	return nil
