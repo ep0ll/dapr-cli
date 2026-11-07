@@ -142,7 +142,11 @@ dapr run --run-file /path/to/directory -k
 		viper.BindPFlag("placement-host-address", cmd.Flags().Lookup("placement-host-address"))
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		if detach && os.Getenv(detachedRunEnv) == "" {
+		isDetachedChild := os.Getenv(detachedRunEnv) == "1"
+		if isDetachedChild {
+			_ = os.Unsetenv(detachedRunEnv)
+		}
+		if detach && !isDetachedChild {
 			if runFilePath != "" || enableRunK8s {
 				print.FailureStatusEvent(os.Stderr, "--detach is supported only for a single self-hosted application run, not --run-file or --kubernetes")
 				os.Exit(1)
