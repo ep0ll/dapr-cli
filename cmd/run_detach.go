@@ -44,7 +44,13 @@ func startDetachedRun(argv []string) error {
 	defer logFile.Close()
 
 	child := exec.Command(executable, args...)
-	child.Env = append(os.Environ(), detachedRunEnv+"=1")
+	child.Env = make([]string, 0, len(os.Environ())+1)
+	for _, env := range os.Environ() {
+		if !strings.HasPrefix(env, detachedRunEnv+"=") {
+			child.Env = append(child.Env, env)
+		}
+	}
+	child.Env = append(child.Env, detachedRunEnv+"=1")
 	child.Stdin = nil
 	child.Stdout = logFile
 	child.Stderr = logFile
@@ -56,6 +62,7 @@ func startDetachedRun(argv []string) error {
 	}
 	// The child owns its process lifetime and log file descriptor from this point.
 	if err := child.Process.Release(); err != nil {
+		_ = child.Process.Kill()
 		return fmt.Errorf("release detached Dapr process: %w", err)
 	}
 
