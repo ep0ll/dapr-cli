@@ -20,6 +20,7 @@ import (
 	"time"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
+	"google.golang.org/protobuf/encoding/protowire"
 
 	"github.com/dapr/cli/pkg/kubernetes"
 	"github.com/dapr/cli/pkg/scheduler/stored"
@@ -88,12 +89,13 @@ func parseJob(jobCounter *JobCount, opts Filter) (*ListOutputWide, error) {
 	}
 
 	listoutput := ListOutputWide{
-		Name:      jobCounter.Key[(strings.LastIndex(jobCounter.Key, "||") + 2):],
-		Namespace: meta.GetNamespace(),
-		Schedule:  jobCounter.Job.GetJob().Schedule,
-		DueTime:   jobCounter.Job.GetJob().DueTime,
-		TTL:       jobCounter.Job.GetJob().Ttl,
-		Repeats:   jobCounter.Job.GetJob().Repeats,
+		Name:              jobCounter.Key[(strings.LastIndex(jobCounter.Key, "||") + 2):],
+		Namespace:         meta.GetNamespace(),
+		Schedule:          jobCounter.Job.GetJob().Schedule,
+		DueTime:           jobCounter.Job.GetJob().DueTime,
+		TTL:               jobCounter.Job.GetJob().Ttl,
+		Repeats:           jobCounter.Job.GetJob().Repeats,
+		OverrideRoutePath: getOverrideRoutePath(meta),
 	}
 
 	switch meta.GetTarget().GetType().(type) {
@@ -139,6 +141,51 @@ func parseJob(jobCounter *JobCount, opts Filter) (*ListOutputWide, error) {
 	}
 
 	return &listoutput, nil
+}
+
+
+// getOverrideRoutePath reads TargetJob.override_route_path without requiring
+// the CLI's pinned Dapr protobuf module to have the newer generated field.
+func getOverrideRoutePath(metadata *schedulerv1.JobMetadata) *string {
+	if metadata == nil || metadata.GetTarget() == nil {
+		return nil
+	}
+
+	jobTarget := metadata.GetTarget().GetJob()
+	if jobTarget == nil {
+		return nil
+	}
+
+	unknown := jobTarget.ProtoReflect().GetUnknown()
+	var routePath *string
+	for len(unknown) > 0 {
+		fieldNumber, wireType, tagLength := protowire.ConsumeTag(unknown)
+		if tagLength < 0 {
+			return routePath
+		}
+		unknown = unknown[tagLength:]
+
+		if wireType == protowire.BytesType {
+			value, valueLength := protowire.ConsumeBytes(unknown)
+			if valueLength < 0 {
+				return routePath
+			}
+			if fieldNumber == 1 {
+				value := string(value)
+				routePath = &value
+			}
+			unknown = unknown[valueLength:]
+			continue
+		}
+
+		valueLength := protowire.ConsumeFieldValue(fieldNumber, wireType, unknown)
+		if valueLength < 0 {
+			return routePath
+		}
+		unknown = unknown[valueLength:]
+	}
+
+	return routePath
 }
 
 func parseJobKey(key string) (*jobKey, error) {

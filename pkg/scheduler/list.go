@@ -41,15 +41,17 @@ type ListOutputWide struct {
 	Schedule    *string    `csv:"SCHEDULE" json:"schedule"  yaml:"schedule,omitempty"`
 	DueTime     *string    `csv:"DUE TIME" json:"dueTime"  yaml:"dueTime,omitempty"`
 	TTL         *string    `csv:"TTL" json:"ttl"  yaml:"ttl,omitempty"`
-	Repeats     *uint32    `csv:"REPEATS" json:"repeats"  yaml:"repeats,omitempty"`
-	Count       uint32     `csv:"COUNT" json:"count"  yaml:"count,omitempty"`
+	Repeats           *uint32    `csv:"REPEATS" json:"repeats"  yaml:"repeats,omitempty"`
+	OverrideRoutePath *string    `csv:"OVERRIDE ROUTE PATH" json:"overrideRoutePath" yaml:"overrideRoutePath,omitempty"`
+	Count             uint32     `csv:"COUNT" json:"count"  yaml:"count,omitempty"`
 	LastTrigger *time.Time `csv:"LAST TRIGGER" json:"lastTrigger,omitempty"  yaml:"lastTrigger,omitempty"`
 }
 
 type ListOutput struct {
-	Name        string `csv:"NAME" json:"name"  yaml:"name"`
-	Begin       string `csv:"BEGIN" json:"begin"  yaml:"begin,omitempty"`
-	Count       uint32 `csv:"COUNT" json:"count"  yaml:"count,omitempty"`
+	Name              string  `csv:"NAME" json:"name"  yaml:"name"`
+	Begin             string  `csv:"BEGIN" json:"begin"  yaml:"begin,omitempty"`
+	OverrideRoutePath *string `csv:"OVERRIDE ROUTE PATH" json:"overrideRoutePath" yaml:"overrideRoutePath,omitempty"`
+	Count             uint32  `csv:"COUNT" json:"count"  yaml:"count,omitempty"`
 	LastTrigger string `csv:"LAST TRIGGER" json:"lastTrigger" yaml:"lastTrigger"`
 }
 
@@ -145,8 +147,9 @@ func listWideToShort(listWide []*ListOutputWide) ([]*ListOutput, error) {
 		}
 
 		l := ListOutput{
-			Name:  item.Name,
-			Count: item.Count,
+			Name:              item.Name,
+			Count:             item.Count,
+			OverrideRoutePath: item.OverrideRoutePath,
 		}
 
 		if item.LastTrigger != nil {
