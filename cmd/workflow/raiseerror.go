@@ -31,9 +31,7 @@ var flagRaiseErrorFailureDetails string
 var RaiseErrorCmd = &cobra.Command{
 	Use:   "raise-error <instance-id>/<event-name>",
 	Short: "Raise an error for a workflow waiting for an external event.",
-	Long: "Raise an error for a workflow waiting for an external event. " +
-		"The --failure-details flag must contain a JSON object with a non-empty errorType. " +
-		"For example: --failure-details='{"errorType":"PaymentFailed","errorMessage":"Payment was declined"}'.",
+	Long: `Raise an error for a workflow waiting for an external event. The --failure-details flag must contain a JSON object with a non-empty errorType. For example: --failure-details='{"errorType":"PaymentFailed","errorMessage":"Payment was declined"}'.`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		parts := strings.Split(args[0], "/")
