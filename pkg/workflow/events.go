@@ -18,6 +18,7 @@ import (
 
 	"github.com/dapr/cli/cmd/runtime"
 	"github.com/dapr/cli/pkg/workflow/dclient"
+	"github.com/dapr/durabletask-go/api/protos"
 	"github.com/dapr/durabletask-go/workflow"
 )
 
@@ -48,6 +49,30 @@ func RaiseEvent(ctx context.Context, opts RaiseEventOptions) error {
 	}
 
 	return cli.WF.RaiseEvent(ctx, opts.InstanceID, opts.Name, wopts...)
+}
+
+type RaiseErrorOptions struct {
+	KubernetesMode bool
+	Namespace      string
+	AppID          string
+	InstanceID     string
+	Name           string
+	FailureDetails *protos.TaskFailureDetails
+}
+
+func RaiseError(ctx context.Context, opts RaiseErrorOptions) error {
+	cli, err := dclient.DaprClient(ctx, dclient.Options{
+		KubernetesMode: opts.KubernetesMode,
+		Namespace:      opts.Namespace,
+		AppID:          opts.AppID,
+		RuntimePath:    runtime.GetDaprRuntimePath(),
+	})
+	if err != nil {
+		return err
+	}
+	defer cli.Cancel()
+
+	return cli.WF.RaiseError(ctx, opts.InstanceID, opts.Name, workflow.WithFailureDetails(opts.FailureDetails))
 }
 
 type SuspendOptions struct {
