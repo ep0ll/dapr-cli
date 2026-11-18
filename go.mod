@@ -8,7 +8,7 @@ require (
 	github.com/Pallinder/sillyname-go v0.0.0-20130730142914-97aeae9e6ba1
 	github.com/briandowns/spinner v1.19.0
 	github.com/dapr/dapr v1.19.0
-	github.com/dapr/durabletask-go v0.15.1
+	github.com/dapr/durabletask-go v0.16.1-0.20261117141205-82c08ce1ddba
 	github.com/dapr/go-sdk v1.15.0-rc.2
 	github.com/dapr/kit v0.19.0
 	github.com/diagridio/go-etcd-cron v0.12.10
@@ -282,4 +282,4 @@ require (
 )
 
 // replace github.com/dapr/dapr => ../dapr
-// replace github.com/dapr/durabletask-go => ../durabletask-go
+replace github.com/dapr/durabletask-go => github.com/ep0ll/dapr-durabletask-go v0.16.1-0.20261117141205-82c08ce1ddba
