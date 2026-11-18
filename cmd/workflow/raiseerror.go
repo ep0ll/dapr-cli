@@ -58,7 +58,6 @@ var RaiseErrorCmd = &cobra.Command{
 			FailureDetails: failureDetails,
 		})
 		if err != nil {
-			print.FailureStatusEvent(cmd.ErrOrStderr(), err.Error())
 			return err
 		}
 
